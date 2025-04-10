@@ -23,7 +23,7 @@
     >
       <template #footer>
         <n-button type="primary" @click="$router.push('/')">
-          Back to Home
+          Go Back
         </n-button>
       </template>
     </n-result>
