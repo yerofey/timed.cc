@@ -35,6 +35,8 @@ import { ref, computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { useEncryption } from '../composables/useEncryption.js';
 
+const isDev = import.meta.env.IS_LOCAL === 'true';
+const apiBasePath = import.meta.env.VITE_API_BASE_PATH || '/api';
 const encryptionKey = import.meta.env.VITE_ENCRYPTION_KEY;
 const { decrypt } = useEncryption(encryptionKey);
 
@@ -55,7 +57,7 @@ onMounted(async () => {
   const code = decodeURIComponent(route.params.code);
 
   try {
-    const res = await fetch(`/api/resolve/${code}`);
+    const res = await fetch(`${apiBasePath}/resolve/${code}`);
 
     if (!res.ok) throw new Error('Network response was not ok');
 

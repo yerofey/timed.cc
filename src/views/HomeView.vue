@@ -195,6 +195,8 @@ import { CopyOutline as CopyIcon } from '@vicons/ionicons5';
 import { useMessage } from 'naive-ui';
 import { useEncryption } from '../composables/useEncryption.js';
 
+const isDev = import.meta.env.IS_LOCAL === 'true';
+const apiBasePath = import.meta.env.VITE_API_BASE_PATH || '/api';
 const encryptionKey = import.meta.env.VITE_ENCRYPTION_KEY;
 const { encrypt } = useEncryption(encryptionKey);
 
@@ -236,7 +238,7 @@ async function createCode() {
       return;
     }
 
-    const res = await fetch('/api/create', {
+    const res = await fetch(`${apiBasePath}/create`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ encryptedUrl }),
