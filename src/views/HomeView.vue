@@ -197,6 +197,7 @@ import { useEncryption } from '../composables/useEncryption.js';
 
 const isDev = import.meta.env.IS_LOCAL === 'true';
 const apiBasePath = import.meta.env.VITE_API_BASE_PATH || '/api';
+const websiteUrl = import.meta.env.VITE_WEBSITE_URL || 'http://localhost:5173';
 const encryptionKey = import.meta.env.VITE_ENCRYPTION_KEY;
 const { encrypt } = useEncryption(encryptionKey);
 
@@ -215,10 +216,7 @@ const isDarkMode = computed(() => {
 });
 
 const fullUrl = computed(() => {
-  // return code.value ? `https://timed.cc/${encodeURIComponent(code.value)}` : '';
-  return code.value
-    ? `http://localhost:5173/${encodeURIComponent(code.value)}`
-    : '';
+  return code.value ? `${websiteUrl}/${encodeURIComponent(code.value)}` : '';
 });
 
 async function createCode() {
