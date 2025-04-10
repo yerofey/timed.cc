@@ -191,6 +191,7 @@
 
 <script setup>
 import { ref, computed } from 'vue';
+import { useRouter } from 'vue-router';
 import { CopyOutline as CopyIcon } from '@vicons/ionicons5';
 import { useMessage } from 'naive-ui';
 import { useEncryption } from '../composables/useEncryption.js';
@@ -207,6 +208,7 @@ const code = ref('');
 const enteredCode = ref('');
 const loading = ref(false);
 const message = useMessage();
+const router = useRouter();
 
 const isDarkMode = computed(() => {
   return (
@@ -271,6 +273,6 @@ function redirectWithCode() {
     return;
   }
 
-  $router.push(`/${encodeURIComponent(enteredCode.value)}`);
+  router.push(`/${encodeURIComponent(enteredCode.value)}`);
 }
 </script>
