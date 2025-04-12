@@ -223,16 +223,44 @@ const fullUrl = computed(() => {
 });
 
 function isValidUrl(input) {
-  const trimmed = input.trim();
-  if (!trimmed) return false;
+  if (!input || typeof input !== 'string') return false;
 
-  return validator.isURL(trimmed, {
-    require_protocol: true,
-    require_valid_protocol: false,
-    allow_underscores: false,
-    allow_trailing_dot: false,
-    allow_protocol_relative_urls: true,
-  });
+  const trimmed = input.trim();
+
+  // Extract protocol part before colon
+  const protoSplit = trimmed.split(':');
+  if (protoSplit.length < 2) return false;
+
+  const protocol = protoSplit[0].toLowerCase();
+
+  // Validate protocol format (starts with letter, alphanum + - . allowed)
+  if (!/^[a-z][a-z0-9+\-.]{1,30}$/.test(protocol)) return false;
+
+  // Block dangerous protocols
+  const disallowed = ['javascript', 'data', 'vbscript', 'blob', 'about'];
+  if (disallowed.includes(protocol)) return false;
+
+  // Standard validation for http/https/mailto/tel/ftp...
+  const knownSchemes = ['http', 'https', 'mailto', 'tel', 'ftp'];
+  if (knownSchemes.includes(protocol)) {
+    return validator.isURL(trimmed, {
+      require_protocol: true,
+      require_valid_protocol: false,
+      allow_protocol_relative_urls: false,
+      allow_underscores: false,
+      allow_trailing_dot: false,
+      validate_length: true,
+    });
+  }
+
+  // For custom schemes like ms-windows-store://pdp/...
+  // Just check that there is some path or query string
+  try {
+    const url = new URL(trimmed);
+    return Boolean(url.pathname || url.search);
+  } catch {
+    return false;
+  }
 }
 
 async function createCode() {
