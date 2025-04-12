@@ -195,6 +195,7 @@ import { useRouter } from 'vue-router';
 import { CopyOutline as CopyIcon } from '@vicons/ionicons5';
 import { useMessage } from 'naive-ui';
 import { useEncryption } from '../composables/useEncryption.js';
+import validator from 'validator';
 
 const isDev = import.meta.env.IS_LOCAL === 'true';
 const apiBasePath = import.meta.env.VITE_API_BASE_PATH || '/api';
@@ -221,9 +222,38 @@ const fullUrl = computed(() => {
   return code.value ? `${websiteUrl}/${encodeURIComponent(code.value)}` : '';
 });
 
+function isValidUrl(input) {
+  const trimmed = input.trim();
+  if (!trimmed) return false;
+
+  return validator.isURL(trimmed, {
+    require_protocol: true,
+    require_valid_protocol: false,
+    allow_underscores: false,
+    allow_trailing_dot: false,
+    allow_protocol_relative_urls: true,
+  });
+}
+
 async function createCode() {
   if (!url.value) {
     message.error('Please enter a URL.');
+    return;
+  }
+
+  // Normalize for validation
+  const raw = url.value.trim();
+  const hasProtocol =
+    /^[a-zA-Z][a-zA-Z\d+\-.]*:\/\//.test(raw) ||
+    raw.startsWith('mailto:') ||
+    raw.startsWith('tel:');
+
+  // If no protocol is present, add https://
+  const processedUrl = hasProtocol ? raw : `https://${raw}`;
+
+  // Validate the URL
+  if (!isValidUrl(processedUrl)) {
+    message.error('Please enter a valid URL or deep link.');
     return;
   }
 
@@ -234,6 +264,7 @@ async function createCode() {
     const encryptedUrl = encrypt(url.value);
 
     if (!encryptedUrl) {
+      message.error('Encryption failed.');
       console.error('Failed to encrypt URL.');
       return;
     }
@@ -245,7 +276,12 @@ async function createCode() {
     });
 
     const data = await res.json();
-    code.value = data.code;
+    if (data?.code) {
+      code.value = data.code;
+    } else {
+      message.error('Failed to get response from server.');
+      console.error('Unexpected API response:', data);
+    }
   } catch (err) {
     console.error('Error creating code:', err);
     message.error('Failed to create code. Please try again.');

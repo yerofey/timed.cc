@@ -1,6 +1,6 @@
-# timed.cc – Frontend
+# timed.cc
 
-This is the frontend for [timed.cc](https://timed.cc) — a quick cross-device link sharing service that uses short codes and end-to-end encryption.
+This is the frontend for [timed.cc](https://timed.cc) — a quick cross-device link sharing service that uses short codes and encryption.
 
 The app is built with:
 
