@@ -7,7 +7,8 @@
       <!-- Header Section -->
       <div class="text-center mb-8 select-none">
         <div
-          class="w-16 h-16 bg-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4"
+          @click="handleLogoClick"
+          class="w-16 h-16 bg-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 cursor-pointer"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -102,11 +103,12 @@
               <!-- Generated Code -->
               <div class="flex items-center gap-2">
                 <n-tag
+                  @click="copyCode"
                   :bordered="false"
                   type="info"
                   size="large"
                   round
-                  class="flex-1 justify-center py-4 select-none"
+                  class="flex-1 justify-center py-4 select-none cursor-pointer"
                 >
                   <n-h2 class="flex !my-1">{{ code }}</n-h2>
                 </n-tag>
@@ -329,6 +331,10 @@ const handleClearClick = () => {
   url.value = '';
   code.value = '';
   enteredCode.value = '';
+};
+
+const handleLogoClick = () => {
+  handleClearClick();
 };
 
 function redirectWithCode() {
