@@ -190,7 +190,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { CopyOutline as CopyIcon } from '@vicons/ionicons5';
 import { useMessage } from 'naive-ui';
@@ -339,4 +339,9 @@ function redirectWithCode() {
 
   router.push(`/${encodeURIComponent(enteredCode.value)}`);
 }
+
+onMounted(() => {
+  // warmup the API
+  fetch('/api/ping').catch(() => {});
+});
 </script>
