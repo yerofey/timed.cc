@@ -342,6 +342,8 @@ function redirectWithCode() {
 
 onMounted(() => {
   // warmup the API
-  fetch('/api/ping').catch(() => {});
+  fetch('/api/warmup', { keepalive: true })
+    .then(() => console.log('[warmup] pinged'))
+    .catch(() => console.warn('[warmup] failed'));
 });
 </script>
