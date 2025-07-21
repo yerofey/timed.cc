@@ -33,3 +33,11 @@ bun run dev
 - 🕔 5-minute TTL on all links
 - 📱 QR code generation
 - 🖱️ Copy to clipboard
+
+## Author
+
+[Yerofey S.](https://github.com/yerofey)
+
+## License
+
+[MIT](https://github.com/yerofey/timed.cc/blob/master/LICENSE)
