@@ -11,31 +11,17 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, watch } from 'vue';
 import { darkTheme } from 'naive-ui';
+import { useTheme } from '@composables/useTheme.js';
 
 const currentTheme = ref(null);
+const { isDarkMode } = useTheme();
 
-// Check for system color scheme preference
-const checkDarkModePreference = () => {
-  currentTheme.value = window.matchMedia('(prefers-color-scheme: dark)').matches
-    ? darkTheme
-    : null;
-};
-
-onMounted(() => {
-  checkDarkModePreference();
-
-  // Watch for changes in system preference
-  const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-  darkModeMediaQuery.addEventListener('change', checkDarkModePreference);
-});
-
-onUnmounted(() => {
-  // Clean up the event listener
-  const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-  darkModeMediaQuery.removeEventListener('change', checkDarkModePreference);
-});
+// Update Naive UI theme based on dark mode preference
+watch(isDarkMode, (dark) => {
+  currentTheme.value = dark ? darkTheme : null;
+}, { immediate: true });
 </script>
 
 <style>
@@ -57,6 +43,7 @@ body {
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
