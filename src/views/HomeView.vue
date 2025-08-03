@@ -43,10 +43,7 @@
           <div v-if="loading" class="flex justify-center">
             <n-spin size="large">
               <template #description>
-                <div class="mt-4 text-lg" :class="{
-                  'text-gray-600': !isDarkMode,
-                  'text-gray-300': isDarkMode,
-                }">
+                <div class="mt-4 text-lg" :class="secondaryTextClass">
                   Generating code...
                 </div>
               </template>
@@ -71,12 +68,22 @@
                 </n-button>
               </div>
 
+              <!-- Expiration Countdown -->
+              <div v-if="countdown" class="text-center text-sm min-h-[20px] w-full" :class="secondaryTextClass">
+                This code will expire in <span class="inline-block min-w-[42px] text-center">{{ countdown }}</span>
+              </div>
+
               <!-- QR Code -->
-              <div class="flex mt-2 rounded-lg" :class="{
-                'bg-gray-50': !isDarkMode,
-                'bg-gray-700': isDarkMode,
-              }">
-                <n-qr-code :size="140" padding="10" type="svg" error-correction-level="M" :value="fullUrl" />
+              <div class="flex flex-col items-center gap-2">
+                <div class="flex justify-center rounded-lg w-[140px] h-[140px]" :class="{
+                  'bg-gray-50': !isDarkMode,
+                  'bg-gray-700': isDarkMode,
+                }">
+                  <n-qr-code :size="140" padding="10" type="svg" error-correction-level="M" :value="fullUrl" />
+                </div>
+                <p class="text-xs text-center w-[170px]" :class="secondaryTextClass">
+                  Scan with your phone camera to open the link
+                </p>
               </div>
 
               <!-- Return button -->
@@ -90,7 +97,7 @@
           <n-divider v-if="!code" dashed title-placement="left" class="!my-6 select-none">or</n-divider>
 
           <!-- Code Input -->
-          <p v-if="!code" class="text-left mb-3" :class="{ 'text-gray-800': !isDarkMode, 'text-white': isDarkMode }">
+          <p v-if="!code" class="text-left mb-3" :class="textClass">
             Enter a code to retrieve a URL
           </p>
           <div v-if="!code" class="flex flex-col sm:flex-row gap-3 mt-4">
@@ -108,7 +115,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { CopyOutline as CopyIcon } from '@vicons/ionicons5';
 import { useMessage } from 'naive-ui';
@@ -128,9 +135,11 @@ const enteredCode = ref('');
 const loading = ref(false);
 const message = useMessage();
 const router = useRouter();
+const expiresAt = ref(0);
+const countdown = ref('');
 
 // Use the theme composable
-const { isDarkMode } = useTheme();
+const { isDarkMode, textClass, secondaryTextClass } = useTheme();
 
 const fullUrl = computed(() => {
   return code.value ? `${websiteUrl}/${encodeURIComponent(code.value)}` : '';
@@ -214,6 +223,12 @@ async function createCode() {
     const data = await api.post('create', { encryptedUrl });
     if (data?.code) {
       code.value = data.code;
+
+      // Store expiration time and start countdown
+      if (data.expiresAt) {
+        expiresAt.value = data.expiresAt;
+        startCountdown();
+      }
     } else {
       message.error('Failed to get response from server.');
       console.error('Unexpected API response:', data);
@@ -237,7 +252,12 @@ const handleClearClick = () => {
   url.value = '';
   code.value = '';
   enteredCode.value = '';
+  expiresAt.value = 0;
+  countdown.value = '';
+  clearInterval(countdownInterval);
 };
+
+let countdownInterval;
 
 const handleLogoClick = () => {
   handleClearClick();
@@ -252,10 +272,44 @@ function redirectWithCode() {
   router.push(`/${encodeURIComponent(enteredCode.value)}`);
 }
 
+function formatTimeRemaining(milliseconds) {
+  if (milliseconds <= 0) return '00:00';
+
+  const totalSeconds = Math.floor(milliseconds / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+
+  return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+}
+
+function startCountdown() {
+  clearInterval(countdownInterval);
+
+  const updateCountdown = () => {
+    const now = Date.now();
+    const remaining = expiresAt.value - now;
+
+    if (remaining <= 0) {
+      clearInterval(countdownInterval);
+      countdown.value = 'Expired';
+      return;
+    }
+
+    countdown.value = formatTimeRemaining(remaining);
+  };
+
+  updateCountdown();
+
+  countdownInterval = setInterval(updateCountdown, 1000);
+}
+
 onMounted(() => {
-  // warmup the API
   api.get('warmup', { keepalive: true })
     .then(() => console.log('[warmup] pinged'))
     .catch(() => console.warn('[warmup] failed'));
+});
+
+onUnmounted(() => {
+  clearInterval(countdownInterval);
 });
 </script>
